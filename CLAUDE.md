@@ -93,6 +93,45 @@ chat-bot/
 - 定期実行: Next.js API Routes + cron or Vercel Cron
 - Docker環境で開発・本番環境を統一
 
+## Git 運用ルール
+
+### ブランチ命名規則
+ブランチ名には必ずプレフィックスを付けること
+
+**プレフィックス:**
+- `feature/` - 新機能追加
+- `fix/` - バグ修正
+- `refactor/` - リファクタリング
+- `docs/` - ドキュメント更新
+- `test/` - テスト追加・修正
+
+**例:**
+```
+feature/postgres-setup
+fix/auth-bug
+refactor/api-structure
+```
+
+### コミットメッセージ規則
+コミットメッセージには必ずプレフィックスを付けること
+
+**プレフィックス:**
+- `add:` - 新規ファイル・機能追加
+- `feature:` - 新機能実装
+- `fix:` - バグ修正
+- `update:` - 既存機能の更新
+- `refactor:` - コードリファクタリング
+- `docs:` - ドキュメント更新
+- `style:` - コードフォーマット
+- `test:` - テスト追加・修正
+
+**例:**
+```
+feature: Next.jsセットアップ
+add: PostgreSQL Docker環境
+fix: ログイン認証エラー
+```
+
 ## Claude Code 実行ログ管理
 Claude Codeが実行した内容は、`process/` ディレクトリにブランチごとに記録されます。
 
