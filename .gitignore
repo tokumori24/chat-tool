@@ -58,3 +58,5 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+
+/app/generated/prisma
