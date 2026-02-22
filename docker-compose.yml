@@ -16,5 +16,23 @@ services:
       timeout: 5s
       retries: 5
 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: chat-bot-web
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://chatbot:chatbot_password@postgres:5432/chatbot_db
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
