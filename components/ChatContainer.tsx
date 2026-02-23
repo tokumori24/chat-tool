@@ -107,8 +107,8 @@ export function ChatContainer() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
-      {/* メッセージ一覧 */}
+    <div className="flex-1 flex flex-col bg-white overflow-hidden">
+      {/* メッセージ一覧（スクロール可能） */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
@@ -119,8 +119,10 @@ export function ChatContainer() {
         )}
       </div>
 
-      {/* メッセージ入力フォーム */}
-      <MessageInput onSend={handleSendMessage} disabled={!userId} />
+      {/* メッセージ入力フォーム（下部固定） */}
+      <div className="shrink-0">
+        <MessageInput onSend={handleSendMessage} disabled={!userId} />
+      </div>
     </div>
   )
 }
