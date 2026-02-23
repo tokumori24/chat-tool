@@ -2,6 +2,7 @@ const { createServer } = require('http')
 const { parse } = require('url')
 const next = require('next')
 const { WebSocketServer } = require('ws')
+const { startCronJobs } = require('./lib/cron')
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = 'localhost'
@@ -11,6 +12,8 @@ const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
+  // Cronジョブを起動
+  startCronJobs()
   const server = createServer(async (req, res) => {
     try {
       const parsedUrl = parse(req.url, true)
