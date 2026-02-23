@@ -63,6 +63,7 @@ model Chat {
   channelId String
   channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   message   String
+  imageUrl  String?  // 画像のURL（base64またはファイルパス）
   createdAt DateTime @default(now())
 
   @@map("chats")
