@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChatContainer } from '@/components/ChatContainer'
 import { ChannelList } from '@/components/ChannelList'
+import { ProfileEditModal } from '@/components/ProfileEditModal'
 
 interface Channel {
   id: string
@@ -20,6 +21,7 @@ interface User {
   id: string
   email: string
   name: string | null
+  avatarUrl?: string | null
 }
 
 export default function Home() {
@@ -27,7 +29,9 @@ export default function Home() {
   const [channels, setChannels] = useState<Channel[]>([])
   const [currentChannelId, setCurrentChannelId] = useState<string | null>(null)
   const [userId, setUserId] = useState<string>('')
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
 
   useEffect(() => {
     // ログイン状態を確認
@@ -40,6 +44,7 @@ export default function Home() {
     try {
       const user: User = JSON.parse(userStr)
       setUserId(user.id)
+      setCurrentUser(user)
       setIsAuthenticated(true)
 
       // generalチャンネルを確保（なければ作成、あれば参加）
@@ -149,12 +154,16 @@ export default function Home() {
         <div className="p-4 border-b border-[#522653]">
           <h1 className="text-xl font-bold">Chat App</h1>
         </div>
-        <ChannelList
-          channels={channels}
-          currentChannelId={currentChannelId}
-          onSelectChannel={setCurrentChannelId}
-          onCreateChannel={handleCreateChannel}
-        />
+        {currentUser && (
+          <ChannelList
+            channels={channels}
+            currentChannelId={currentChannelId}
+            currentUser={currentUser}
+            onSelectChannel={setCurrentChannelId}
+            onCreateChannel={handleCreateChannel}
+            onOpenProfile={() => setShowProfileModal(true)}
+          />
+        )}
       </div>
 
       {/* メインチャットエリア */}
@@ -181,6 +190,18 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* プロフィール編集モーダル */}
+      {showProfileModal && currentUser && (
+        <ProfileEditModal
+          user={currentUser}
+          onClose={() => setShowProfileModal(false)}
+          onUpdate={(updatedUser) => {
+            setCurrentUser(updatedUser)
+            setShowProfileModal(false)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
             id: true,
             email: true,
             name: true,
+            avatarUrl: true,
           },
         },
       },
@@ -78,6 +79,7 @@ export async function GET(request: NextRequest) {
             id: true,
             email: true,
             name: true,
+            avatarUrl: true,
           },
         },
         reactions: {
@@ -87,6 +89,7 @@ export async function GET(request: NextRequest) {
                 id: true,
                 email: true,
                 name: true,
+                avatarUrl: true,
               },
             },
           },
