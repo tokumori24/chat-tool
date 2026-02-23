@@ -15,23 +15,56 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  chats     Chat[]
+  id              String          @id @default(cuid())
+  email           String          @unique
+  name            String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  chats           Chat[]
+  createdChannels Channel[]       @relation("ChannelCreator")
+  channelMembers  ChannelMember[]
 
   @@map("users")
+}
+
+model Channel {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  createdById String
+  createdBy   User            @relation("ChannelCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  chats       Chat[]
+  members     ChannelMember[]
+
+  @@map("channels")
+  @@index([createdById])
+}
+
+model ChannelMember {
+  id        String   @id @default(cuid())
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+
+  @@unique([channelId, userId])
+  @@map("channel_members")
+  @@index([channelId])
+  @@index([userId])
 }
 
 model Chat {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   message   String
   createdAt DateTime @default(now())
 
   @@map("chats")
   @@index([userId])
+  @@index([channelId])
 }

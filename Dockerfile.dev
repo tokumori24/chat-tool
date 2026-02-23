@@ -1,4 +1,4 @@
-# 開発環境用Dockerfile
+# 本番環境用Dockerfile
 FROM node:22-alpine
 
 WORKDIR /app
@@ -10,7 +10,14 @@ RUN npm ci
 # アプリケーションコードをコピー
 COPY . .
 
+# ビルド時の環境変数（ダミー）
+ARG DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
+
+# Prisma生成とビルド
+RUN npx prisma generate
+RUN npm run build
+
 EXPOSE 3000
 
-# 開発サーバー起動スクリプト（Prisma生成とマイグレーションも含む）
-CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npm run dev"]
+# 本番サーバー起動スクリプト（マイグレーションも含む）
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
