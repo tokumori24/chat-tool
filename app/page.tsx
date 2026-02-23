@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ChatContainer } from '@/components/ChatContainer'
 import { ChannelList } from '@/components/ChannelList'
 import { ProfileEditModal } from '@/components/ProfileEditModal'
+import { MembersModal } from '@/components/MembersModal'
 
 interface Channel {
   id: string
@@ -32,6 +33,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showMembersModal, setShowMembersModal] = useState(false)
 
   useEffect(() => {
     // ログイン状態を確認
@@ -149,8 +151,8 @@ export default function Home() {
 
   return (
     <div className="h-screen flex overflow-hidden bg-[#1a1d21]">
-      {/* サイドバー（Slack風） */}
-      <div className="w-64 bg-[#3f0e40] text-white flex flex-col">
+      {/* サイドバー（Slack風） - 768px以下で非表示 */}
+      <div className="hidden md:flex w-64 bg-[#3f0e40] text-white flex-col">
         <div className="p-4 border-b border-[#522653]">
           <h1 className="text-xl font-bold">Chat App</h1>
         </div>
@@ -174,10 +176,10 @@ export default function Home() {
             # {currentChannel?.name || '...'}
           </h2>
           <button
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition"
+            onClick={() => setShowMembersModal(true)}
+            className="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
           >
-            ログアウト
+            参加者
           </button>
         </div>
 
@@ -200,6 +202,14 @@ export default function Home() {
             setCurrentUser(updatedUser)
             setShowProfileModal(false)
           }}
+        />
+      )}
+
+      {/* メンバー一覧モーダル */}
+      {showMembersModal && currentChannelId && (
+        <MembersModal
+          channelId={currentChannelId}
+          onClose={() => setShowMembersModal(false)}
         />
       )}
     </div>
