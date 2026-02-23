@@ -26,6 +26,7 @@ interface Message {
     id: string
     email: string
     name: string | null
+    avatarUrl?: string | null
   }
   reactions?: Reaction[]
 }
@@ -77,6 +78,21 @@ export function ChatContainer({ channelId, userId }: ChatContainerProps) {
                 reactions: (msg.reactions || []).filter(
                   r => !(r.userId === data.data.userId && r.emoji === data.data.emoji)
                 )
+              }
+            : msg
+        ))
+      } else if (data.type === 'profile_updated') {
+        // プロフィール更新: メッセージのユーザー情報を更新
+        const updatedUser = data.data
+        setMessages((prev) => prev.map(msg =>
+          msg.user.id === updatedUser.id
+            ? {
+                ...msg,
+                user: {
+                  ...msg.user,
+                  name: updatedUser.name,
+                  avatarUrl: updatedUser.avatarUrl,
+                }
               }
             : msg
         ))
