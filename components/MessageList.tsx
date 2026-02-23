@@ -24,6 +24,7 @@ interface Message {
     id: string
     email: string
     name: string | null
+    avatarUrl?: string | null
   }
   reactions?: Reaction[]
 }
@@ -92,8 +93,16 @@ export function MessageList({ messages, currentUserId, onReactionAdd, onReaction
         return (
           <div key={msg.id} className="flex gap-3 hover:bg-gray-50 p-2 rounded">
             {/* アバター */}
-            <div className="w-9 h-9 rounded bg-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
-              {msg.user.name?.[0] || 'A'}
+            <div className="w-9 h-9 rounded bg-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0 overflow-hidden">
+              {msg.user.avatarUrl ? (
+                <img
+                  src={msg.user.avatarUrl}
+                  alt={`${msg.user.name || 'User'}'s avatar`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{msg.user.name?.[0] || 'A'}</span>
+              )}
             </div>
 
             {/* メッセージ内容 */}
