@@ -29,6 +29,15 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // WebSocketで全クライアントに通知
+    if (global.wss) {
+      global.wss.clients.forEach((client: any) => {
+        if (client.readyState === 1) { // OPEN
+          client.send(JSON.stringify({ type: 'new_message', data: chat }))
+        }
+      })
+    }
+
     return NextResponse.json(chat, { status: 201 })
   } catch (error) {
     console.error('Error creating message:', error)
