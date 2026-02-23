@@ -4,16 +4,30 @@ import { useState, useEffect, useRef } from 'react'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
 
+interface Reaction {
+  id: string
+  chatId: string
+  userId: string
+  emoji: string
+  user: {
+    id: string
+    email: string
+    name: string | null
+  }
+}
+
 interface Message {
   id: string
   userId: string
   message: string
+  imageUrl?: string | null
   createdAt: string
   user: {
     id: string
     email: string
     name: string | null
   }
+  reactions?: Reaction[]
 }
 
 interface ChatContainerProps {
@@ -47,6 +61,25 @@ export function ChatContainer({ channelId, userId }: ChatContainerProps) {
         if (data.data.channelId === channelId) {
           setMessages((prev) => [...prev, data.data])
         }
+      } else if (data.type === 'reaction_added') {
+        // リアクション追加: ローカルstateを更新（スクロール位置を保持）
+        setMessages((prev) => prev.map(msg =>
+          msg.id === data.data.chatId
+            ? { ...msg, reactions: [...(msg.reactions || []), data.data] }
+            : msg
+        ))
+      } else if (data.type === 'reaction_removed') {
+        // リアクション削除: ローカルstateを更新（スクロール位置を保持）
+        setMessages((prev) => prev.map(msg =>
+          msg.id === data.data.chatId
+            ? {
+                ...msg,
+                reactions: (msg.reactions || []).filter(
+                  r => !(r.userId === data.data.userId && r.emoji === data.data.emoji)
+                )
+              }
+            : msg
+        ))
       }
     }
 
@@ -96,6 +129,32 @@ export function ChatContainer({ channelId, userId }: ChatContainerProps) {
     }
   }
 
+  const handleReactionAdd = async (messageId: string, emoji: string) => {
+    try {
+      await fetch('/api/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chatId: messageId,
+          userId,
+          emoji,
+        }),
+      })
+    } catch (error) {
+      console.error('Failed to add reaction:', error)
+    }
+  }
+
+  const handleReactionRemove = async (messageId: string, emoji: string) => {
+    try {
+      await fetch(`/api/reactions?chatId=${messageId}&userId=${userId}&emoji=${encodeURIComponent(emoji)}`, {
+        method: 'DELETE',
+      })
+    } catch (error) {
+      console.error('Failed to remove reaction:', error)
+    }
+  }
+
   return (
     <div className="flex-1 flex flex-col bg-white overflow-hidden">
       {/* メッセージ一覧（スクロール可能） */}
@@ -105,7 +164,12 @@ export function ChatContainer({ channelId, userId }: ChatContainerProps) {
             <p className="text-gray-500">Loading...</p>
           </div>
         ) : (
-          <MessageList messages={messages} />
+          <MessageList
+            messages={messages}
+            currentUserId={userId}
+            onReactionAdd={handleReactionAdd}
+            onReactionRemove={handleReactionRemove}
+          />
         )}
       </div>
 
