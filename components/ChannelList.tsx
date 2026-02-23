@@ -2,6 +2,13 @@
 
 import { useState } from 'react'
 
+interface User {
+  id: string
+  email: string
+  name: string | null
+  avatarUrl?: string | null
+}
+
 interface Channel {
   id: string
   name: string
@@ -16,15 +23,19 @@ interface Channel {
 interface ChannelListProps {
   channels: Channel[]
   currentChannelId: string | null
+  currentUser: User
   onSelectChannel: (channelId: string) => void
   onCreateChannel: (name: string) => void
+  onOpenProfile: () => void
 }
 
 export function ChannelList({
   channels,
   currentChannelId,
+  currentUser,
   onSelectChannel,
   onCreateChannel,
+  onOpenProfile,
 }: ChannelListProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [newChannelName, setNewChannelName] = useState('')
@@ -60,8 +71,35 @@ export function ChannelList({
         ))}
       </div>
 
-      {/* チャンネル作成ボタン（下部固定） */}
-      <div className="p-2 border-t border-[#522653]">
+      {/* プロフィールボタン & チャンネル作成ボタン（下部固定） */}
+      <div className="p-2 border-t border-[#522653] space-y-2">
+        {/* プロフィールボタン */}
+        <button
+          onClick={onOpenProfile}
+          className="w-full px-3 py-2 flex items-center gap-3 hover:bg-[#522653] rounded text-white"
+        >
+          {/* アバター */}
+          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0 overflow-hidden">
+            {currentUser.avatarUrl ? (
+              <img
+                src={currentUser.avatarUrl}
+                alt="Avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-sm">
+                {currentUser.name?.[0] || currentUser.email[0].toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="flex-1 text-left text-sm">
+            <div className="font-medium">{currentUser.name || 'Anonymous'}</div>
+            <div className="text-xs text-gray-400">{currentUser.email}</div>
+          </div>
+          <span className="text-gray-400">⚙️</span>
+        </button>
+
+        {/* チャンネル作成ボタン */}
         {!isCreating && (
           <button
             onClick={() => setIsCreating(true)}
