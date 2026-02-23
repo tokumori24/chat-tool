@@ -24,6 +24,7 @@ model User {
   chats           Chat[]
   createdChannels Channel[]       @relation("ChannelCreator")
   channelMembers  ChannelMember[]
+  reactions       Reaction[]
 
   @@map("users")
 }
@@ -57,16 +58,32 @@ model ChannelMember {
 }
 
 model Chat {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   channelId String
-  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channel   Channel    @relation(fields: [channelId], references: [id], onDelete: Cascade)
   message   String
-  imageUrl  String?  // 画像のURL（base64またはファイルパス）
-  createdAt DateTime @default(now())
+  imageUrl  String?    // 画像のURL（base64またはファイルパス）
+  createdAt DateTime   @default(now())
+  reactions Reaction[]
 
   @@map("chats")
   @@index([userId])
   @@index([channelId])
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emoji     String   // スタンプの絵文字（👍, ❤️, 😂 など）
+  createdAt DateTime @default(now())
+
+  @@unique([chatId, userId, emoji]) // 同じユーザーが同じメッセージに同じスタンプを複数回押せないように
+  @@map("reactions")
+  @@index([chatId])
+  @@index([userId])
 }
