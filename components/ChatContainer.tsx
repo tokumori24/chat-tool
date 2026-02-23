@@ -16,18 +16,22 @@ interface Message {
   }
 }
 
-export function ChatContainer() {
+interface ChatContainerProps {
+  channelId: string
+  userId: string
+}
+
+export function ChatContainer({ channelId, userId }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>([])
-  const [userId, setUserId] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const wsRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
-    // 初回ロード時にユーザーを作成
-    createUser()
-    // メッセージ一覧を取得
+    // チャンネルが変更されたらメッセージを再取得
     fetchMessages()
+  }, [channelId])
 
+  useEffect(() => {
     // WebSocket接続（/wsパスを使用）
     const ws = new WebSocket('ws://localhost:3000/ws')
     wsRef.current = ws
@@ -39,8 +43,10 @@ export function ChatContainer() {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
       if (data.type === 'new_message') {
-        // 新しいメッセージを受信したら、リストに追加
-        setMessages((prev) => [...prev, data.data])
+        // 現在のチャンネルのメッセージのみ追加
+        if (data.data.channelId === channelId) {
+          setMessages((prev) => [...prev, data.data])
+        }
       }
     }
 
@@ -56,29 +62,12 @@ export function ChatContainer() {
     return () => {
       ws.close()
     }
-  }, [])
-
-  const createUser = async () => {
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: `user${Date.now()}@example.com`,
-          name: 'Anonymous User',
-        }),
-      })
-      const user = await res.json()
-      setUserId(user.id)
-    } catch (error) {
-      console.error('Failed to create user:', error)
-    }
-  }
+  }, [channelId])
 
   const fetchMessages = async () => {
     try {
       setIsLoading(true)
-      const res = await fetch('/api/messages')
+      const res = await fetch(`/api/messages?channelId=${channelId}`)
       const data = await res.json()
       setMessages(data.reverse()) // 古い順に表示
     } catch (error) {
@@ -89,7 +78,7 @@ export function ChatContainer() {
   }
 
   const handleSendMessage = async (message: string) => {
-    if (!userId || !message.trim()) return
+    if (!userId || !channelId || !message.trim()) return
 
     try {
       await fetch('/api/messages', {
@@ -97,6 +86,7 @@ export function ChatContainer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
+          channelId,
           message: message.trim(),
         }),
       })
