@@ -55,11 +55,22 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
     const channelId = searchParams.get('channelId')
     const limit = searchParams.get('limit')
+    const startTime = searchParams.get('startTime') // ISO 8601形式の日時
+    const endTime = searchParams.get('endTime') // ISO 8601形式の日時
 
     const messages = await prisma.chat.findMany({
       where: {
         ...(userId && { userId }),
         ...(channelId && { channelId }),
+        ...(startTime && { createdAt: { gte: new Date(startTime) } }),
+        ...(endTime && { createdAt: { lte: new Date(endTime) } }),
+        // startTimeとendTimeの両方が指定された場合
+        ...(startTime && endTime && {
+          createdAt: {
+            gte: new Date(startTime),
+            lte: new Date(endTime),
+          },
+        }),
       },
       include: {
         user: {

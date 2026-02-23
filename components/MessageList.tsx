@@ -4,6 +4,7 @@ interface Message {
   id: string
   userId: string
   message: string
+  imageUrl?: string | null
   createdAt: string
   user: {
     id: string
@@ -52,7 +53,18 @@ export function MessageList({ messages }: MessageListProps) {
                 {formatTime(msg.createdAt)}
               </span>
             </div>
-            <p className="text-gray-800 mt-1">{msg.message}</p>
+            <p className="text-gray-800 mt-1 whitespace-pre-wrap">{msg.message}</p>
+
+            {/* 画像がある場合は表示 */}
+            {msg.imageUrl && (
+              <div className="mt-2">
+                <img
+                  src={msg.imageUrl}
+                  alt="Generated illustration"
+                  className="max-w-md rounded-lg border border-gray-200 shadow-sm"
+                />
+              </div>
+            )}
           </div>
         </div>
       ))}

@@ -1,6 +1,9 @@
 # Claude Code実行ログ
 process/
 
+# 生成された画像
+output/
+
 # dependencies
 node_modules/
 .pnp
