@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ChatContainer } from '@/components/ChatContainer'
 import { ChannelList } from '@/components/ChannelList'
 
@@ -15,34 +16,43 @@ interface Channel {
   }
 }
 
+interface User {
+  id: string
+  email: string
+  name: string | null
+}
+
 export default function Home() {
+  const router = useRouter()
   const [channels, setChannels] = useState<Channel[]>([])
   const [currentChannelId, setCurrentChannelId] = useState<string | null>(null)
   const [userId, setUserId] = useState<string>('')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  const createUser = async () => {
+  useEffect(() => {
+    // ログイン状態を確認
+    const userStr = localStorage.getItem('user')
+    if (!userStr) {
+      router.push('/login')
+      return
+    }
+
     try {
-      const timestamp = Date.now()
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: `user${timestamp}@example.com`,
-          name: 'Anonymous User',
-        }),
-      })
-      const user = await res.json()
+      const user: User = JSON.parse(userStr)
       setUserId(user.id)
+      setIsAuthenticated(true)
 
       // generalチャンネルを確保（なければ作成、あれば参加）
-      await ensureGeneralChannel(user.id)
+      ensureGeneralChannel(user.id)
 
-      // ユーザー作成後、チャンネル一覧を取得
-      await fetchChannels(user.id)
+      // チャンネル一覧を取得
+      fetchChannels(user.id)
     } catch (error) {
-      console.error('Failed to create user:', error)
+      console.error('Failed to parse user data:', error)
+      router.push('/login')
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const ensureGeneralChannel = async (uid: string) => {
     try {
@@ -78,11 +88,10 @@ export default function Home() {
     }
   }
 
-  useEffect(() => {
-    // ユーザー作成
-    createUser()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const handleLogout = () => {
+    localStorage.removeItem('user')
+    router.push('/login')
+  }
 
   const fetchChannels = async (uid?: string) => {
     try {
@@ -125,6 +134,14 @@ export default function Home() {
 
   const currentChannel = channels.find((ch) => ch.id === currentChannelId) || null
 
+  if (!isAuthenticated) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="h-screen flex overflow-hidden bg-[#1a1d21]">
       {/* サイドバー（Slack風） */}
@@ -143,10 +160,16 @@ export default function Home() {
       {/* メインチャットエリア */}
       <div className="flex-1 flex flex-col">
         {/* ヘッダー */}
-        <div className="h-14 bg-white border-b border-gray-200 flex items-center px-4">
+        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4">
           <h2 className="text-lg font-bold text-gray-900">
             # {currentChannel?.name || '...'}
           </h2>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition"
+          >
+            ログアウト
+          </button>
         </div>
 
         {/* チャットコンテナ */}
